@@ -6,62 +6,73 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Product\Order;
+use App\Models\Product\Product;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
+
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $order = Order::paginate('10', ['*'], 'page')->all();
+        return response()->json([
+            'message' => __('messages.index_success'),
+            'data'    => $order
+        ], ResponseAlias::HTTP_OK);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function store(StoreOrderRequest $request): JsonResponse
     {
-        //
+        $request->validated();
+
+        $order = Order::forceCreate([
+            'count'       => $request->input('count'),
+            'total_price' => $request->integer('total_price'),
+            'products'    => $request->input('products'),
+        ]);
+
+        return response()->json([
+            'message' => __('messages.store_success'),
+            'data'    => $order
+        ], ResponseAlias::HTTP_CREATED);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreOrderRequest $request)
+
+    public function show(Order $order): JsonResponse
     {
-        //
+        return response()->json([
+            'message' => __('messages.store_success'),
+            'data'    => $order
+        ], ResponseAlias::HTTP_OK);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Order $order)
+
+    public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
-        //
+        $request->validated();
+
+        $order->forceFill([
+            'count'       => $request->input('count'),
+            'total_price' => $request->integer('total_price'),
+            'products'    => $request->input('products'),
+        ])->save();
+
+        return response()->json([
+            'message' => __('messages.update_success'),
+            'data'    => $order
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
+
+    public function destroy(Order $order): JsonResponse
     {
-        //
+        $order->delete();
+        return response()->json([
+            'message' => __('messages.delete_success'),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateOrderRequest $request, Order $order)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
-    {
-        //
-    }
 }
