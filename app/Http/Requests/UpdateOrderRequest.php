@@ -23,7 +23,7 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'count'          => ['required', 'integer', 'gt:0'],
+            'count'          => ['required', 'integer'],
             'total_price'    => ['required', 'numeric', 'min:1'],
             'products.name'  => ['required', 'string', 'max:300', 'min:3','exists:products,name'],
             'products.price' => ['required', 'numeric', 'min:1'],

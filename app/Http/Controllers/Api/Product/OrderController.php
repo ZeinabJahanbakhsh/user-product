@@ -53,8 +53,15 @@ class OrderController extends Controller
     {
         $request->validated();
 
+        if($request->integer('count') <= 0){
+            $order->delete();
+            return response()->json([
+                'message' => __('messages.rejected_order'),
+            ]);
+        }
+
         $order->forceFill([
-            'count'       => $request->input('count'),
+            'count'       => $request->integer('count'),
             'total_price' => $request->integer('total_price'),
             'products'    => $request->input('products'),
         ])->save();
