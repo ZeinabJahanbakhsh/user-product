@@ -6,62 +6,75 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product\Product;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
+
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(): JsonResponse
     {
-        //
+        $products = Product::paginate('10', ['*'], 'page')->all();
+        return response()->json([
+            'message' => __('messages.index_success'),
+            'data'    => $products
+        ], ResponseAlias::HTTP_OK);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function store(StoreProductRequest $request): JsonResponse
     {
-        //
+        $request->validated();
+
+        $products = Product::forceCreate([
+            'name'      => $request->input('name'),
+            'price'     => $request->integer('price'),
+            'inventory' => $request->input('inventory'),
+        ]);
+
+        return response()->json([
+            'message' => __('messages.store_success'),
+            'data'    => $products
+        ], ResponseAlias::HTTP_CREATED);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreProductRequest $request)
+
+    public function show(Product $product): JsonResponse
     {
-        //
+        return response()->json([
+            'message' => __('messages.store_success'),
+            'data'    => $product
+        ], ResponseAlias::HTTP_OK);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Product $product)
+
+    public function update(UpdateProductRequest $request, Product $product): JsonResponse
     {
-        //
+        $request->validated();
+
+        $product->forceFill([
+            'name'      => $request->input('name'),
+            'price'     => $request->integer('price'),
+            'inventory' => $request->input('inventory'),
+        ])->save();
+
+        return response()->json([
+            'message' => __('messages.update_success'),
+            'data'    => $product
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
+
+    public function destroy(Product $product): JsonResponse
     {
-        //
+        $product->delete();
+        return response()->json([
+            'message' => __('messages.delete_success'),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateProductRequest $request, Product $product)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Product $product)
-    {
-        //
-    }
+
 }
