@@ -44,7 +44,7 @@ class ProductController extends Controller
     public function show(Product $product): JsonResponse
     {
         return response()->json([
-            'message' => __('messages.store_success'),
+            'message' => __('messages.show_success'),
             'data'    => $product
         ], ResponseAlias::HTTP_OK);
     }
