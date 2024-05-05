@@ -12,11 +12,10 @@ Route::prefix('auth')->group(function () {
 
     Route::post('login', [LoginController::class, 'login']);
     Route::post('register', [RegisterController::class, 'register']);
-    //Route::post('logout', [AuthController::class, 'logout']);
 
 });
 
-Route::prefix('dashboard')->middleware(['api'])->group(function () {
+Route::prefix('dashboard')->middleware(['auth:api'])->group(function () {
 
     Route::resource('products', ProductController::class)->except('edit', 'create');
     Route::resource('orders', OrderController::class)->except('edit', 'create');

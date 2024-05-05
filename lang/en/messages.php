@@ -3,7 +3,7 @@
 return [
 
     'index_success'         => 'List of data',
-    'show_success'          => 'Show of data',
+    'show_success'          => 'Show data successfully',
     'store_success'         => 'Store data successfully',
     'update_success'        => 'Update data successfully',
     'delete_success'        => 'Delete data successfully',
