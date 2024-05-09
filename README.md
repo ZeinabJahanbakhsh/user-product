@@ -7,8 +7,8 @@
 
 # Need to know
 
-- ProductController use Redis as a database.
-- OrderController use Redis as a cache driver.
+- ProductController has used Redis as a database.
+- OrderController has used Redis as a cache driver.
 - How to install [Redis](https://redis.io/docs/latest/operate/oss_and_stack/install/install-redis/install-redis-on-windows/) in windows
 - How to install [Redis](https://laravel.com/docs/11.x/redis) in Laravel
 
