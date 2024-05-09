@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Product\Order;
-use App\Models\Product\Product;
+use Illuminate\Support\Facades\Cache;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
@@ -15,14 +17,33 @@ class OrderController extends Controller
 {
     public function index(): JsonResponse
     {
-        $order = Order::paginate('10', ['*'], 'page')->all();
+        /*
+         * It works
+        $orders = Product::all()->toArray();
+        cache()->putMany((array)'put_many_orders', $orders);
+        */
+
+        /*
+         * It works
+        $orders = Order::get();
+        cache()->put('put_orders', $orders);
+        */
+
+        $orders = Cache::remember('order_list', 60, function () {
+            return Order::all();
+        });
+
         return response()->json([
             'message' => __('messages.index_success'),
-            'data'    => $order
+            'data'    => $orders
         ], ResponseAlias::HTTP_OK);
     }
 
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function store(StoreOrderRequest $request): JsonResponse
     {
         $request->validated();
@@ -33,32 +54,67 @@ class OrderController extends Controller
             'products'    => $request->input('products'),
         ]);
 
+        cache()->put('order_store_' . $order->id, $order);
+        $orderCache = cache()->get('order_store_' . $order->id);
+
         return response()->json([
             'message' => __('messages.store_success'),
-            'data'    => $order
+            'data'    => $orderCache
         ], ResponseAlias::HTTP_CREATED);
     }
 
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function show(Order $order): JsonResponse
     {
+        if (
+            Cache::get('order_store_' . $order->id)
+            || Cache::get('order_update_' . $order->id)
+            || Cache::get('order_show_' . $order->id)
+        ) {
+            cache()->put('order_show_' . $order->id, $order);
+            $orderCache = cache()->get('order_show_' . $order->id);
+
+            return response()->json([
+                'message' => __('messages.store_success'),
+                'data'    => $orderCache
+            ], ResponseAlias::HTTP_OK);
+        }
+
+
+        $orderCache = null;
+        Cache::remember('order_show_' . $order->id, 60, function () use (&$order, &$orderCache) {
+            $orderCache = $order;
+        });
+
         return response()->json([
             'message' => __('messages.store_success'),
-            'data'    => $order
+            'data'    => $orderCache
         ], ResponseAlias::HTTP_OK);
     }
 
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function update(UpdateOrderRequest $request, Order $order): JsonResponse
     {
         $request->validated();
 
-        if($request->integer('count') <= 0){
+        if ($request->integer('count') <= 0) {
             $order->delete();
             return response()->json([
                 'message' => __('messages.rejected_order'),
             ]);
         }
+
+        Cache::forget('order_store_' . $order->id);
+        Cache::forget('order_show_' . $order->id);
+        Cache::forget('order_update_' . $order->id);
 
         $order->forceFill([
             'count'       => $request->integer('count'),
@@ -66,9 +122,12 @@ class OrderController extends Controller
             'products'    => $request->input('products'),
         ])->save();
 
+        cache()->put('order_update_' . $order->id, $order);
+        $orderCache = cache()->get('order_update_' . $order->id);
+
         return response()->json([
             'message' => __('messages.update_success'),
-            'data'    => $order
+            'data'    => $orderCache
         ]);
     }
 
@@ -76,6 +135,11 @@ class OrderController extends Controller
     public function destroy(Order $order): JsonResponse
     {
         $order->delete();
+
+        Cache::forget('order_store_' . $order->id);
+        Cache::forget('order_show_' . $order->id);
+        Cache::forget('order_update_' . $order->id);
+
         return response()->json([
             'message' => __('messages.delete_success'),
         ]);
