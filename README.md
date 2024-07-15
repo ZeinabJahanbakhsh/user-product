@@ -13,6 +13,11 @@
 - How to install [Redis](https://laravel.com/docs/11.x/redis) in Laravel
 
 
+# You can see Postman collection format:
+
+- More information [Json data](https://blue-crater-7468.postman.co/workspace/ce242345-1e23-491b-b1f1-438c4271ef44)
+
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
