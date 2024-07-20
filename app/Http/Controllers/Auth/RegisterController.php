@@ -9,16 +9,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
+
 class RegisterController extends Controller
 {
     public function register(StoreUserRequest $request)
     {
-        $request->validated();
+        $credential = $request->validated();
 
         $user = User::forceCreate([
-            'name'     => $request->input('name'),
-            'email'    => $request->input('email'),
-            'password' => Hash::make($request->string('password')),
+            'name'     => $credential['name'],
+            'email'    => $credential['email'],
+            'password' => Hash::make($credential['password']),
         ]);
 
         return response()->json([
